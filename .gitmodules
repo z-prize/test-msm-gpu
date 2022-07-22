@@ -1,0 +1,3 @@
+[submodule "bellman-cuda"]
+	path = bellman-cuda
+	url = https://github.com/matter-labs/bellman-cuda.git
