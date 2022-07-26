@@ -5,7 +5,7 @@
 #include <cuda.h>
 #include <sys/mman.h>
 
-# include <ff/bls12-377.hpp>
+#include <ff/bls12-377.hpp>
 
 #include <ec/jacobian_t.hpp>
 #include <ec/xyzz_t.hpp>

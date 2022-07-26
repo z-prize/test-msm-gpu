@@ -4,6 +4,7 @@
 
 use std::env;
 use std::path::PathBuf;
+use cmake;
 
 fn main() {
     let curve = "FEATURE_BLS12_377";
@@ -56,6 +57,7 @@ fn main() {
         cc.define(def, None);
     }
     if let Some(include) = env::var_os("DEP_BLST_C_SRC") {
+        println!("1 {}", include.to_str().unwrap());
         cc.include(include);
     }
     cc.files(&files).compile("blst_msm");
@@ -69,10 +71,26 @@ fn main() {
         Err(_) => which::which("nvcc"),
     };
 
+    println!("cargo:rustc-link-search=native=/home/mcarilli/algos/rust-helper");
+    println!("cargo:rustc-link-lib=static=hello");
+
+    if cfg!(target_os = "linux") {
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+    }
+    let mut config = cmake::Config::new("bellman-cuda");
+    let config = config.profile("Release");
+    let build_path = config.build().join("build").join("src");
+    println!("cargo:rustc-link-search=native={}", build_path.display());
+    println!(
+        "cargo:rustc-link-search=native={}",
+        build_path.join(config.get_profile()).display()
+    );
+    println!("cargo:rustc-link-lib=static=bellman-cuda");
+
     if nvcc.is_ok() {
         let mut nvcc = cc::Build::new();
         nvcc.cuda(true);
-        nvcc.flag("-arch=sm_70");
+        nvcc.flag("-arch=sm_86");
         nvcc.flag("-maxrregcount=255");
         nvcc.flag("--default-stream=per-thread");
         nvcc.flag("-Xcompiler").flag("-Wno-unused-function");
@@ -82,12 +100,16 @@ fn main() {
             nvcc.define(def, None);
         }
         if let Some(include) = env::var_os("DEP_BLST_C_SRC") {
+            println!("22222222 {}", include.to_str().unwrap());
             nvcc.include(include);
         }
         if let Some(include) = env::var_os("DEP_SPPARK_ROOT") {
+            println!("33333333 {}", include.to_str().unwrap());
             nvcc.include(include);
         }
-        nvcc.file("cuda/pippenger_inf.cu").compile("blst_cuda_msm");
+        nvcc.file("cuda/pippenger_inf.cu")
+            .file("cuda/bellman_cuda_shim.cu")
+            .compile("blst_cuda_msm");
 
         println!("cargo:rustc-cfg=feature=\"cuda\"");
         println!("cargo:rerun-if-changed=cuda");
