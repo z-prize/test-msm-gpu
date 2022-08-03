@@ -71,9 +71,6 @@ fn main() {
         Err(_) => which::which("nvcc"),
     };
 
-    println!("cargo:rustc-link-search=native=/home/mcarilli/algos/rust-helper");
-    println!("cargo:rustc-link-lib=static=hello");
-
     if cfg!(target_os = "linux") {
         println!("cargo:rustc-link-lib=dylib=stdc++");
     }
@@ -86,6 +83,9 @@ fn main() {
         build_path.join(config.get_profile()).display()
     );
     println!("cargo:rustc-link-lib=static=bellman-cuda");
+    println!("cargo:rerun-if-changed={}", build_path.display());
+
+    println!("cargo:rustc-link-lib=dylib=nvToolsExt");
 
     if nvcc.is_ok() {
         let mut nvcc = cc::Build::new();
