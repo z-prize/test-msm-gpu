@@ -12,7 +12,7 @@ pub fn generate_points_scalars<G: AffineCurve>(
     len: usize,
     batch_size: usize
 ) -> (Vec<G>, Vec<G::ScalarField>) {
-    let rand_gen: usize = 1 << 11;
+    let rand_gen: usize = 1 << 26;
     let mut rng = ChaCha20Rng::from_entropy();
 
     let mut points =
@@ -21,8 +21,9 @@ pub fn generate_points_scalars<G: AffineCurve>(
                 .map(|_| G::Projective::rand(&mut rng))
                 .collect::<Vec<_>>(),
         );
-    // Sprinkle in some infinity points
-    points[3] = G::zero();
+    
+// Sprinkle in some infinity points
+//    points[3] = G::zero();
     while points.len() < len {
         points.append(&mut points.clone());
     }
